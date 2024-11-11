@@ -184,6 +184,17 @@
         :dir="dir"
         @setAnnotation="onSetAnnotation"
       ></NodeAnnotationBtn>
+      <div
+        v-if="item === 'autoTest'"
+        class="toolbarBtn"
+        :class="{
+          disabled: activeNodes.length <= 0
+        }"
+        @click="autoTest"
+      >
+        <span class="icon iconfont iconauto-test"></span>
+        <span class="text">{{ $t('toolbar.autoTest') }}</span>
+      </div>
     </template>
   </div>
 </template>
@@ -204,6 +215,10 @@ export default {
       default() {
         return []
       }
+    },
+    mindMap: {
+      type: Object,
+      default: null  // 修改这里，允许为 null
     }
   },
   data() {
@@ -299,6 +314,17 @@ export default {
     // 设置标记
     onSetAnnotation(...args) {
       this.$bus.$emit('execCommand', 'SET_NOTATION', this.activeNodes, ...args)
+    },
+
+    // 自动测试
+    autoTest() {
+      if (!this.mindMap) return  // 添加这行，防止 mindMap 为 null 时调用
+      if (this.activeNodes.length <= 0) {
+        this.$message.warning('请先选择一个节点!')
+        return
+      }
+      // 使用 Vue 事件总线来执行命令
+      this.$bus.$emit('execCommand', 'ADD_AUTO_TEST')
     }
   }
 }

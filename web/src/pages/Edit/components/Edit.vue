@@ -48,6 +48,7 @@
     >
       <div class="dragTip">{{ $t('edit.dragTip') }}</div>
     </div>
+    <Toolbar :mindMap="mindMap"></Toolbar>
   </div>
 </template>
 
@@ -75,7 +76,7 @@ import OuterFrame from 'simple-mind-map/src/plugins/OuterFrame.js'
 import Themes from 'simple-mind-map-plugin-themes'
 // 协同编辑插件
 // import Cooperate from 'simple-mind-map/src/plugins/Cooperate.js'
-// 以下插件为付费插件，详情请查看开发文档。依次为：手绘风格插件、标记插件、编号插件、Freemind软件格式导入导出插件、Excel软件格式导入导出插件、待办插件
+// 以下插件为付费插件，情请查看开发文档。依次为：手风格插件、标记插件、编号插件、Freemind软件格式导入导出插件、Excel软件格式导入导出插件、待办插件
 // import HandDrawnLikeStyle from 'simple-mind-map-plugin-handdrawnlikestyle'
 // import Notation from 'simple-mind-map-plugin-notation'
 // import Numbers from 'simple-mind-map-plugin-numbers'
@@ -120,6 +121,8 @@ import NodeAttachment from './NodeAttachment.vue'
 import NodeOuterFrame from './NodeOuterFrame.vue'
 import NodeTagStyle from './NodeTagStyle.vue'
 import Setting from './Setting.vue'
+import AutoTest from 'simple-mind-map/src/plugins/AutoTest.js'
+import Toolbar from './Toolbar.vue'
 
 // 注册插件
 MindMap.usePlugin(MiniMap)
@@ -139,6 +142,7 @@ MindMap.usePlugin(MiniMap)
   .usePlugin(RainbowLines)
   .usePlugin(Demonstrate)
   .usePlugin(OuterFrame)
+  .usePlugin(AutoTest)
 // .usePlugin(Cooperate) // 协同插件
 
 // 注册主题
@@ -176,7 +180,8 @@ export default {
     NodeAttachment,
     NodeOuterFrame,
     NodeTagStyle,
-    Setting
+    Setting,
+    Toolbar
   },
   data() {
     return {
@@ -229,6 +234,8 @@ export default {
     // this.showNewFeatureInfo()
     this.getData()
     this.init()
+    // 初始化插件
+    this.initPlugins()
     this.$bus.$on('execCommand', this.execCommand)
     this.$bus.$on('paddingChange', this.onPaddingChange)
     this.$bus.$on('export', this.export)
@@ -337,7 +344,7 @@ export default {
     init() {
       let hasFileURL = this.hasFileURL()
       let { root, layout, theme, view, config } = this.mindMapData
-      // 如果url中存在要打开的文件，那么思维导图数据、主题、布局都使用默认的
+      // 如果url中存在要开的文件，那么思维导图数据、主题、布局都使用默认的
       if (hasFileURL) {
         root = {
           data: {
@@ -844,7 +851,7 @@ export default {
         //     ]
         //   }
         // ])
-        // 动态插入多个同级节点
+        // 动插入多个同级节点
         // this.mindMap.execCommand('INSERT_MULTI_NODE', null, [
         //   {
         //     data: {
@@ -913,6 +920,25 @@ export default {
       const file = dt.files && dt.files[0]
       if (!file) return
       this.$bus.$emit('importFile', file)
+    },
+
+    // 初始化插件
+    initPlugins() {
+      // 添加自动化测试插件
+      this.addAutoTestPlugin()
+      // ... 其他插件初始化
+    },
+
+    // 添加自动化测试插件
+    addAutoTestPlugin() {
+      if (!this.mindMap) return
+      this.mindMap.addPlugin(AutoTest)
+    },
+
+    // 移除自动化测试插件
+    removeAutoTestPlugin() {
+      if (!this.mindMap) return
+      this.mindMap.removePlugin(AutoTest)
     }
   }
 }

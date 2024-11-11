@@ -1,9 +1,9 @@
 <template>
-  <div class="toolbarContainer" :class="{ isDark: isDark }">
+  <div class="toolbarContainer" :class="{ isDark: isDark }" v-if="mindMap">
     <div class="toolbar" ref="toolbarRef">
       <!-- 节点操作 -->
       <div class="toolbarBlock">
-        <ToolbarNodeBtnList :list="horizontalList"></ToolbarNodeBtnList>
+        <ToolbarNodeBtnList :list="horizontalList" :mindMap="mindMap"></ToolbarNodeBtnList>
         <!-- 更多 -->
         <el-popover
           v-model="popoverShow"
@@ -16,6 +16,7 @@
           <ToolbarNodeBtnList
             dir="v"
             :list="verticalList"
+            :mindMap="mindMap"
             @click.native="popoverShow = false"
           ></ToolbarNodeBtnList>
           <div slot="reference" class="toolbarBtn">
@@ -175,6 +176,12 @@ export default {
     Import,
     ToolbarNodeBtnList
   },
+  props: {
+    mindMap: {
+      type: Object,
+      default: null
+    }
+  },
   data() {
     return {
       isMobile: isMobile(),
@@ -193,9 +200,9 @@ export default {
         'summary',
         'associativeLine',
         'formula',
-        // 'attachment',
         'outerFrame',
-        'annotation'
+        'annotation',
+        'autoTest'
       ],
       horizontalList: [],
       verticalList: [],
@@ -229,10 +236,12 @@ export default {
     this.$bus.$on('write_local_file', this.onWriteLocalFile)
   },
   mounted() {
-    this.computeToolbarShow()
-    this.computeToolbarShowThrottle = throttle(this.computeToolbarShow, 300)
-    window.addEventListener('resize', this.computeToolbarShowThrottle)
-    this.$bus.$on('lang_change', this.computeToolbarShowThrottle)
+    this.$nextTick(() => {
+      this.computeToolbarShow()
+      this.computeToolbarShowThrottle = throttle(this.computeToolbarShow, 300)
+      window.addEventListener('resize', this.computeToolbarShowThrottle)
+      this.$bus.$on('lang_change', this.computeToolbarShowThrottle)
+    })
     window.addEventListener('beforeunload', this.onUnload)
   },
   beforeDestroy() {
@@ -244,6 +253,8 @@ export default {
   methods: {
     // 计算工具按钮如何显示
     computeToolbarShow() {
+      if (!this.$refs.toolbarRef) return
+
       const windowWidth = window.innerWidth - 40
       const all = [...this.list]
       let index = 1
@@ -251,6 +262,7 @@ export default {
         if (index > all.length) return done()
         this.horizontalList = all.slice(0, index)
         this.$nextTick(() => {
+          if (!this.$refs.toolbarRef) return
           const width = this.$refs.toolbarRef.getBoundingClientRect().width
           if (width < windowWidth) {
             index++
@@ -397,7 +409,7 @@ export default {
       }
     },
 
-    // 读取本地文件
+    // 读取地文件
     async readFile() {
       let file = await fileHandle.getFile()
       let fileReader = new FileReader()
